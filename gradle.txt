@@ -1,24 +1,23 @@
-<title>Using CXF with Gradle to generate Java from WSDL</title>
-This one seemed to work after setting up CXF version and correct WSDL file/location: https://stackoverflow.com/questions/34955895/cxf-codegen-plugin-port-to-gradle
-<BR> See below for a sample "build.gradle" which works with CXF.
-<BR>
-# In build.gradle change -b option to use the binding.xml file
-<BR>
-# The following command shows all the available tasks including wsdl2Java:
-<BR>gradle tasks --all
-<BR>
-# Generate Java code from WSDL file:
-<BR>
-gradle wsdl2Java -Dhttp.proxyHost=bos-proxy.ext.ray.com -Dhttp.proxyPort=80
-<BR>
-<BR>
-# Update Eclipse files so Eclipse knows where to find the generated Java files:
-<BR>
-gradle eclipse
-<BR>
-Here's the working build.gradle file:
-<BR>
+Using CXF with Gradle to generate Java from WSDL
 
+This one seemed to work after setting up CXF version and correct WSDL file/location: https://stackoverflow.com/questions/34955895/cxf-codegen-plugin-port-to-gradle
+See below for a sample "build.gradle" which works with CXF.
+
+# In build.gradle change -b option to use the binding.xml file
+
+# The following command shows all the available tasks including wsdl2Java:
+gradle tasks --all
+
+# Generate Java code from WSDL file:
+
+gradle wsdl2Java -Dhttp.proxyHost=bos-proxy.ext.ray.com -Dhttp.proxyPort=80
+
+
+# Update Eclipse files so Eclipse knows where to find the generated Java files:
+
+gradle eclipse
+
+Here's the working build.gradle file:
 
 // Apply the java-library plugin to add support for Java Library
 apply plugin: 'java-library'
