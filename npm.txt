@@ -1,0 +1,8 @@
+1. To get NPM to work with a proxy follow these steps:
+1.1 Set these values:
+1.1.1 proxy=http://USERNAME:PASSWORD@HOST:80/    *
+1.1.2 strict-ssl=false
+1.2 Save the file. NPM encodes special characters in the PASSWORD accordingly and saves the settings in %USER_HOME%\.npmrc
+ 
+* To get the value for HOST look at the IE Internet Options/LAN settings, download the configuration script and select a nearby proxy server.
+  The USERNAME is the Windows Login, PASSWORD is the corresponding value.

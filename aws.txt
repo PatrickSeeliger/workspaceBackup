@@ -1,0 +1,5 @@
+How to deploy automatically from GitHub to AWS.
+
+Keep in mind that you'll need at least a GitHub developer's (i.e. paid) account. The free version doesn't have the GitHub feature needed to do this.
+
+Follow the instructions here: https://aws.amazon.com/blogs/devops/automatically-deploy-from-github-using-aws-codedeploy/
