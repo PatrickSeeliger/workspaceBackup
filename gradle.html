@@ -1,0 +1,156 @@
+<title>Using CXF with Gradle to generate Java from WSDL</title>
+This one seemed to work after setting up CXF version and correct WSDL file/location: https://stackoverflow.com/questions/34955895/cxf-codegen-plugin-port-to-gradle
+<BR> See below for a sample "build.gradle" which works with CXF.
+<BR>
+# In build.gradle change -b option to use the binding.xml file
+<BR>
+# The following command shows all the available tasks including wsdl2Java:
+<BR>gradle tasks --all
+<BR>
+# Generate Java code from WSDL file:
+<BR>
+gradle wsdl2Java -Dhttp.proxyHost=bos-proxy.ext.ray.com -Dhttp.proxyPort=80
+<BR>
+<BR>
+# Update Eclipse files so Eclipse knows where to find the generated Java files:
+<BR>
+gradle eclipse
+<BR>
+Here's the working build.gradle file:
+<BR>
+
+
+// Apply the java-library plugin to add support for Java Library
+apply plugin: 'java-library'
+
+// PS-NOTE We need to apply the war plugin
+apply plugin: 'war'
+
+// In this section you declare where to find the dependencies of your project
+repositories {
+    // Use jcenter for resolving your dependencies.
+    // You can declare any Maven/Ivy/file repository here.
+    // PS-NOTE: commented out jcenter and replaced it with the line below: jcenter()
+    maven { url "http://repo.maven.apache.org/maven2" }
+    
+}
+
+
+buildscript {
+    ext {
+    	cxfVersion = '3.2.0'
+        xjcVersion= '3.0.5'
+        jaxbOutputDir = "$buildDir/generated/cxf"
+        jaxb2BasicsVersion = '0.11.0'
+    }
+}
+
+configurations {
+    cxf
+}
+
+apply plugin: 'java'
+apply plugin: 'eclipse'
+
+
+sourceSets {
+    main {
+         java {
+          srcDirs += "$jaxbOutputDir"
+         }
+    }
+}
+
+task wsdl2java(type: JavaExec) {
+    ext {
+         outputDir = file("$jaxbOutputDir")
+    }   
+    systemProperties  = ['javax.xml.accessExternalSchema': 'file' , 'file.encoding':'UTF8']
+    outputs.upToDateWhen { false }
+    outputs.dir outputDir
+    main = 'org.apache.cxf.tools.wsdlto.WSDLToJava'
+    classpath = project.configurations.cxf
+    args '-d', outputDir
+    args '-fe', 'jaxws21'
+    args '-client'
+    args '-verbose'
+    args '-validate'
+    args '-mark-generated'
+//  args '-xjc-X'
+    args '-xjc-Xfluent-api'
+    args '-xjc-Xts'
+    args '-xjc-XhashCode'
+    args '-xjc-Xequals'
+//    args '-b',"$projectDir/src/main/resources/jaxws-custom-bindings.xjb" 
+    args '-b',"$projectDir/src/main/resources/binding.xml"
+    args "$projectDir/src/main/resources/CustomerService.wsdl"
+    doLast {
+         println "----- cxf jaxb2 files generated -----"
+    }
+}
+
+ dependencies {
+    cxf "org.apache.cxf:cxf-tools-wsdlto-core:$cxfVersion"
+    cxf "org.apache.cxf:cxf-tools-wsdlto-frontend-jaxws:$cxfVersion"
+    cxf "org.apache.cxf:cxf-tools-wsdlto-databinding-jaxb:$cxfVersion"
+
+    cxf "org.jvnet.jaxb2_commons:jaxb2-fluent-api:3.0"
+    cxf "org.apache.cxf.xjcplugins:cxf-xjc-ts:$xjcVersion"
+
+    cxf "org.jvnet.jaxb2_commons:jaxb2-basics:$jaxb2BasicsVersion"
+
+    compile "org.apache.cxf.xjc-utils:cxf-xjc-runtime:$xjcVersion"
+    compile "org.jvnet.jaxb2_commons:jaxb2-basics-runtime:$jaxb2BasicsVersion"
+    compile 'commons-lang:commons-lang:2.6'
+ }
+
+compileJava.dependsOn wsdl2java
+
+
+
+
+dependencies {
+    compile "junit:junit:4.12"
+    // added commons logging which is needed at runtime for CustomerServiceServer
+    compile 'commons-logging:commons-logging:1.2'
+//    cxf "org.apache.cxf:cxf-tools-wsdlto-core:3.2.0"
+//    cxf "org.apache.cxf:cxf-tools-wsdlto-frontend-jaxws:3.2.0"
+//    cxf "org.apache.cxf:cxf-tools-wsdlto-databinding-jaxb:3.2.0"
+
+//    cxf "org.jvnet.jaxb2_commons:jaxb2-fluent-api:3.0"
+//    cxf "org.apache.cxf.xjcplugins:cxf-xjc-ts:$xjcVersion"
+
+//    cxf "org.jvnet.jaxb2_commons:jaxb2-basics:$jaxb2BasicsVersion"
+
+//    compile "org.apache.cxf.xjc-utils:cxf-xjc-runtime:$xjcVersion"
+//    compile "org.jvnet.jaxb2_commons:jaxb2-basics-runtime:$jaxb2BasicsVersion"
+//    compile 'commons-lang:commons-lang:2.6'
+
+// PS-NOTE       providedCompile   'org.apache.tomcat:tomcat-servlet-api:7.0.37'
+    compile group: 'org.apache.cxf', name: 'cxf-rt-frontend-jaxws', version:'3.2.0'
+    compile group: 'org.apache.cxf', name: 'cxf-rt-transports-http', version:'3.2.0'
+    compile group: 'org.apache.cxf', name: 'cxf-rt-management', version:'3.2.0'
+    compile group: 'org.apache.cxf', name: 'cxf-rt-features-metrics', version:'3.2.0'
+    // PS-NOTE: Jetty is needed if you're using the CXFServlet per pom.xml under java_first_pojo
+    compile group: 'org.apache.cxf', name: 'cxf-rt-transports-http-jetty', version:'3.2.0'
+    compile(group: 'org.apache.cxf.xjc-utils', name: 'cxf-xjc-runtime', version:'2.6.0') {
+exclude(module: 'jaxb-api')
+    }
+    compile(group: 'org.springframework', name: 'spring-web', version:'4.3.10.RELEASE') {
+exclude(module: 'log4j')
+exclude(module: 'servlet-api')
+exclude(module: 'logkit')
+exclude(module: 'avalon-framework')
+exclude(module: 'commons-logging')
+    }
+
+    // This dependency is exported to consumers, that is to say found on their compile classpath.
+    api 'org.apache.commons:commons-math3:3.6.1'
+
+    // This dependency is used internally, and not exposed to consumers on their own compile classpath.
+    implementation 'com.google.guava:guava:23.0'
+
+    // Use JUnit test framework
+    testImplementation 'junit:junit:4.12'
+}
+
